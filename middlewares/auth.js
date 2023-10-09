@@ -38,16 +38,14 @@ module.exports = async (req, res, next) => {
    }
 
    try {
-      // Verify the access token
-      const decodedAccess = await jwt.verify(access, process.env.ACCESS_TOKEN);
+      const decodedAccess = jwt.verify(access, process.env.ACCESS_TOKEN);
       req.user = decodedAccess.userInfo;
       console.log("this is auth route",req.user)
       next();
    } catch (accessError) {
       if (accessError.name === "TokenExpiredError") {
          try {
-            // Verify the refresh token
-            const decodedRefresh = await jwt.verify(
+            const decodedRefresh = jwt.verify(
                refresh,
                process.env.REFRESH_TOKEN
             );
@@ -56,8 +54,7 @@ module.exports = async (req, res, next) => {
             if (!foundUser) {
                return res.status(403).send("Refresh token is invalid");
             }
-            // Issue a new access token
-            const newAccessToken = await jwt.sign(
+            const newAccessToken = jwt.sign(
                {"userInfo":{"userId":foundUser._id,"userName":foundUser.name,"admin":foundUser.admin}},
                process.env.ACCESS_TOKEN,
                { expiresIn: "15m" }
